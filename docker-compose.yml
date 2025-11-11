@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # Neo4j Database - Graph database with APOC support
+  # =============================================================================
+  neo4j:
+    image: neo4j:5.15-community
+    container_name: graphrag_neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474"  # HTTP Browser
+      - "7687:7687"  # Bolt protocol
+    environment:
+      # Authentication
+      - NEO4J_AUTH=neo4j/graphrag_password
+      
+      # Essential plugins
+      - NEO4J_PLUGINS=["apoc", "graph-data-science"]
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      
+      # Security for plugins
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*,gds.*
+      - NEO4J_dbms_security_procedures_allowlist=apoc.*,gds.*
+      
+      # Memory settings
+      - NEO4J_dbms_memory_heap_initial__size=512m
+      - NEO4J_dbms_memory_heap_max__size=1G
+      - NEO4J_dbms_memory_pagecache_size=512m
+      
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/var/lib/neo4j/import
+    
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p graphrag_password 'RETURN 1' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    
+    networks:
+      - graphrag_network
+
+  # =============================================================================
+  # GraphRAG Application - Main FastAPI application
+  # =============================================================================
+  graphrag_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: graphrag_application
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Neo4j Configuration
+      - NEO4J_URI=neo4j://neo4j:7687
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASSWORD=graphrag_password
+      - NEO4J_DATABASE=neo4j
+      
+      # vLLM Configuration
+      - VLLM_MODEL_NAME=microsoft/DialoGPT-medium
+      - VLLM_MODEL_PATH=/app/models
+      - VLLM_MAX_TOKENS=2048
+      - VLLM_TEMPERATURE=0.1
+      
+      # Embedding Configuration
+      - EMBEDDING_MODEL=all-MiniLM-L6-v2
+      - EMBEDDING_DIMENSION=384
+      - EMBEDDING_BATCH_SIZE=32
+      
+      # Processing Configuration
+      - CHUNK_SIZE=1000
+      - CHUNK_OVERLAP=200
+      - SIMILARITY_THRESHOLD=0.85
+      - AUTO_EMBED_ON_UPLOAD=true
+      
+      # Application Configuration
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+      
+    volumes:
+      - ./uploads:/app/uploads
+      - ./models:/app/models
+      - ./logs:/app/logs
+    
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    networks:
+      - graphrag_network
+
+# =============================================================================
+# Volumes - Persistent data storage
+# =============================================================================
+volumes:
+  neo4j_data:
+  neo4j_logs:
+  neo4j_import:
+
+# =============================================================================
+# Networks - Container networking
+# =============================================================================
+networks:
+  graphrag_network:
+    driver: bridge

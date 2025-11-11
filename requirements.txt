@@ -1,0 +1,53 @@
+# Enhanced GraphRAG System Requirements
+# Core FastAPI and web framework
+fastapi>=0.100.0
+uvicorn[standard]>=0.20.0
+python-multipart>=0.0.6
+
+# OpenAI for LLM and embeddings
+openai>=1.0.0
+
+# Ollama for local embeddings
+ollama>=0.2.0
+
+# Neo4j and graph database
+neo4j>=5.0.0,<6.0.0
+
+# LangChain ecosystem (simplified to avoid conflicts)
+langchain>=0.0.350
+langchain-community>=0.0.10
+langchain-experimental>=0.0.40
+langchain-openai>=0.0.5
+
+# Document processing
+pypdf>=3.0.0
+python-docx>=0.8.0
+openpyxl>=3.0.0
+pandas>=1.5.0,<3.0.0
+xlrd>=2.0.0
+
+# Basic ML utilities (reduced dependencies)
+numpy>=1.21.0,<2.0.0
+scikit-learn>=1.2.0
+
+# Data validation and serialization
+pydantic>=2.0.0,<3.0.0
+pydantic-settings>=2.0.0
+
+# HTTP and async
+httpx>=0.24.0
+aiofiles>=22.0.0
+requests>=2.28.0
+
+# Utilities
+python-dotenv>=1.0.0
+tqdm>=4.60.0
+
+# Development and testing
+pytest>=7.0.0
+pytest-asyncio>=0.20.0
+black>=23.0.0
+flake8>=6.0.0
+
+# Monitoring and logging
+structlog>=23.0.0
