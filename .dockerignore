@@ -1,28 +1,34 @@
 .git
 .venv
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-*.egg-info
+**pycache**
+_.pyc
+_.pyo
+_.pyd
+_.egg-info
 .pytest_cache
 .mypy_cache
 .ruff_cache
 
 # Data — mounted at runtime, not baked in
+
 data/raw/
 uploads/
 logs/
 models/
 
 # Dev / docs
-*.md
-*.txt
+
+_.md
+_.txt
 !requirements.txt
 .env
-.env.*
+.env.\*
 kaggle.txt
+progression.txt
+
+!Readme.md
 
 # IDE
+
 .vscode/
 .idea/

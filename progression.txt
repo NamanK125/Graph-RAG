@@ -1,0 +1,91 @@
+RAG-Enabled Retail Decision Making — Build Progress
+=====================================================
+
+PHASE 1 — Hybrid Retrieval Layer
+---------------------------------
+[ ] Create retrieval/__init__.py
+[ ] Create retrieval/hybrid.py
+    [ ] RetrievedContext dataclass
+    [ ] RetrievalMode enum
+    [ ] HybridRetriever.semantic_search()
+    [ ] HybridRetriever.graph_search()
+    [ ] HybridRetriever.keyword_search()
+    [ ] HybridRetriever.retrieve() — combined + ranked
+
+PHASE 2 — Base Agent Framework
+--------------------------------
+[ ] Create agents/__init__.py
+[ ] Create agents/base.py
+    [ ] DecisionOutput Pydantic model
+    [ ] BaseRetailAgent abstract class
+    [ ] .graph_context_query() abstract method
+    [ ] .decide() method (retrieve → LLM → DecisionOutput)
+    [ ] .retrieve() method (calls HybridRetriever)
+
+PHASE 3 — Domain Agents
+-------------------------
+[ ] agents/inventory.py — InventoryAgent
+    [ ] Cypher query for stock levels + supplier lead times
+    [ ] System prompt for reorder/transfer/stockout decisions
+    [ ] Decision payload schema
+[ ] agents/pricing.py — PricingAgent
+    [ ] Cypher query for inventory aging + sales velocity
+    [ ] System prompt for discount/margin decisions
+    [ ] Decision payload schema
+[ ] agents/logistics.py — LogisticsAgent
+    [ ] Cypher query for delay events + warehouse routes
+    [ ] System prompt for rerouting/reprioritization
+    [ ] Decision payload schema
+[ ] agents/store_ops.py — StoreOpsAgent
+    [ ] Cypher query for store load + transaction rates
+    [ ] System prompt for staffing/checkout decisions
+    [ ] Decision payload schema
+[ ] agents/customer.py — CustomerAgent
+    [ ] Cypher query for purchase history + churn risk
+    [ ] System prompt for promotions/churn prevention
+    [ ] Decision payload schema
+
+PHASE 4 — Orchestrator
+------------------------
+[ ] Create agents/orchestrator.py
+    [ ] Domain classifier (LLM routing)
+    [ ] Parallel agent dispatch (asyncio.gather)
+    [ ] Multi-domain response synthesis
+    [ ] RetailOrchestrator.query() end-to-end method
+
+PHASE 5 — API Endpoints
+-------------------------
+[ ] POST /decide                  (orchestrator — full pipeline)
+[ ] POST /decide/inventory
+[ ] POST /decide/pricing
+[ ] POST /decide/logistics
+[ ] POST /decide/store-ops
+[ ] POST /decide/customer/{id}
+[ ] GET  /graph/inventory/status
+[ ] GET  /graph/pricing/aging
+[ ] GET  /graph/logistics/delays
+[ ] GET  /graph/stores/load
+[ ] GET  /graph/customers/at-risk
+
+PHASE 6 — Graph Schema Extensions
+------------------------------------
+[ ] Add Supplier node + properties (lead_time_days, reliability_score, sla_days)
+[ ] Add Warehouse node + properties (capacity_units, current_stock)
+[ ] Add DelayEvent node (type, reason, severity, dates)
+[ ] Add inventory_age_days + reorder_point to Product
+[ ] Add hour field to Transaction
+[ ] New relationship: (Product)-[:STOCKED_AT]->(Store)
+[ ] New relationship: (Product)-[:SUPPLIED_BY]->(Supplier)
+[ ] New relationship: (Supplier)-[:DELIVERS_TO]->(Warehouse)
+[ ] New relationship: (Warehouse)-[:SHIPS_TO]->(Store)
+[ ] New relationship: (Supplier)-[:HAS_DELAY]->(DelayEvent)
+[ ] Update etl.py loaders for all new node types
+[ ] Update etl.py synthetic data generator for suppliers/warehouses
+
+PHASE 7 — Docs + Cleanup
+--------------------------
+[ ] Rewrite README.md for retail decision-making focus
+[ ] Add langgraph to requirements.txt
+[ ] Update .gitignore for any new artifacts
+[ ] Update docker-compose.yml if new services needed
+[ ] End-to-end smoke test: POST /decide with sample retail query
