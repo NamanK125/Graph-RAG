@@ -1,0 +1,28 @@
+.git
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Data — mounted at runtime, not baked in
+data/raw/
+uploads/
+logs/
+models/
+
+# Dev / docs
+*.md
+*.txt
+!requirements.txt
+.env
+.env.*
+kaggle.txt
+
+# IDE
+.vscode/
+.idea/

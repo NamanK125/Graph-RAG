@@ -27,8 +27,8 @@ from contextlib import asynccontextmanager
 import uvicorn
 
 # LangChain imports for document processing
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.schema import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_neo4j import Neo4jGraph
 from langchain_experimental.graph_transformers import LLMGraphTransformer
@@ -144,7 +144,7 @@ class OpenAIInference:
                 model=self.fallback_model,
                 messages=[{"role": "user", "content": prompt}]
             )
-            return response['message']['content'].strip()
+            return response.message.content.strip()
         except Exception as fallback_error:
             print(f"❌ Both OpenAI and Ollama failed. OpenAI error: {e}, Ollama error: {fallback_error}")
             return f"Error: Unable to generate response. Please check your OpenAI quota and ensure Ollama is running with {self.fallback_model} model."
@@ -256,11 +256,11 @@ class OllamaEmbedding:
             
             embeddings = []
             for text in texts:
-                response = ollama.embeddings(
+                response = ollama.embed(
                     model=self.model,
-                    prompt=text
+                    input=text
                 )
-                embeddings.append(response['embedding'])
+                embeddings.append(response.embeddings[0])
             
             return embeddings[0] if single_text else embeddings
         except Exception as e:

@@ -1,0 +1,45 @@
+# Secrets & credentials
+.env
+kaggle.txt
+*.key
+*.pem
+
+# Plan & progress docs
+Walmart_GraphRAG_Plan.md
+
+# Raw datasets (large files — download via data/download_datasets.py)
+data/raw/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+*.egg
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs & uploads
+logs/
+uploads/
+*.log
+
+# Docker runtime
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

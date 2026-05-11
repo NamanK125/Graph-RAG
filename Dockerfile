@@ -1,37 +1,65 @@
-# Minimal Dockerfile for Enhanced GraphRAG System
-FROM python:3.11-slim
+# ── Builder ───────────────────────────────────────────────────────────────────
+FROM python:3.13-slim AS builder
 
-# Set working directory
-WORKDIR /app
+WORKDIR /build
 
-# Install system dependencies (minimal)
-RUN apt-get update && apt-get install -y \
-    curl \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt
 
-# Create necessary directories
-RUN mkdir -p uploads models logs
+# ── Runtime ───────────────────────────────────────────────────────────────────
+FROM python:3.13-slim
 
-# Copy application code
-COPY main.py .
+# ── Python runtime flags ──────────────────────────────────────────────────────
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH"
 
-# Create non-root user
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-RUN chown -R appuser:appuser /app
-USER appuser
+# ── Neo4j defaults (overridden by compose / docker run -e) ───────────────────
+ENV NEO4J_URI=neo4j://localhost:7687 \
+    NEO4J_USERNAME=neo4j \
+    NEO4J_PASSWORD=graphrag_password \
+    NEO4J_DATABASE=neo4j
 
-# Expose port
+# ── Ollama defaults ───────────────────────────────────────────────────────────
+ENV OLLAMA_BASE_URL=http://localhost:11434 \
+    OLLAMA_EMBEDDING_MODEL=nomic-embed-text \
+    OLLAMA_LLM_FALLBACK_MODEL=llama3.2
+
+# ── OpenAI defaults ───────────────────────────────────────────────────────────
+ENV OPENAI_API_KEY="" \
+    OPENAI_MODEL=gpt-4o-mini
+
+# ── App tuning defaults ───────────────────────────────────────────────────────
+ENV CHUNK_SIZE=1000 \
+    CHUNK_OVERLAP=200 \
+    SIMILARITY_THRESHOLD=0.85
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /opt/venv /opt/venv
+
+RUN groupadd -r app && useradd -r -g app -d /app app \
+ && chown app:app /app
+
+COPY --chown=app:app entrypoint.sh .
+COPY --chown=app:app main.py       .
+COPY --chown=app:app data/         ./data/
+
+USER app
+
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-# Run the application
+ENTRYPOINT ["./entrypoint.sh"]
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
