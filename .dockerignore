@@ -18,8 +18,8 @@ models/
 
 # Dev / docs
 
-_.md
-_.txt
+*.md
+*.txt
 !requirements.txt
 .env
 .env.\*
