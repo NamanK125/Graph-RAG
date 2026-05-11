@@ -1,10 +1,10 @@
 .git
 .venv
 **pycache**
-_.pyc
-_.pyo
-_.pyd
-_.egg-info
+*.pyc
+*pyo
+*pyd
+*egg-info
 .pytest_cache
 .mypy_cache
 .ruff_cache
